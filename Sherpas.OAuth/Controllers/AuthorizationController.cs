@@ -141,13 +141,15 @@ namespace Sherpas.OAuth.Controllers
             var tokenJson = new JwtSecurityTokenHandler().WriteToken(token);
             var refreshToken = GenerateRefreshToken();
 
-            user.TokenInfo.Add(new TokenInfo
+            var tokenInfo = new TokenInfo
             {
+                UserId = user.Id,
                 AccessToken = tokenJson,
-                RefreshToken = refreshToken
-            });
+                RefreshToken = refreshToken,
+                CreatedAt = DateTime.UtcNow
+            };
 
-            await _userService.Update(user);
+            await _userService.CreateTokenInfo(tokenInfo);
 
             return new AccessTokenResponse
             {

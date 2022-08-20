@@ -63,17 +63,23 @@ namespace Sherpas.OAuth.Services.Database
         public async Task<User?> GetByUserNameAndRefreshToken(string userName, string refreshToken)
         {
             return await Entities
-                .Include(x => x.TokenInfo)
-                .FirstOrDefaultAsync(x => x.UserName == userName && x.TokenInfo.Any(t => t.RefreshToken == refreshToken));
+                .Include(x => x.TokenInfo.Where(t => t.RefreshToken == refreshToken))
+                .FirstOrDefaultAsync(x => x.UserName == userName);
         }
 
         public async Task<User?> GetByUserNameAndCode(string userName, string code)
         {
             return await Entities
-                .Include(x => x.TokenInfo)
-                .Include(x => x.AuthenticationCodes)
-                .FirstOrDefaultAsync(x => x.UserName == userName &&
-                                          x.AuthenticationCodes.Any(authCode => authCode.Code == code && !authCode.Consumed));
+                .Include(x => x.AuthenticationCodes.Where(authCode => authCode.Code == code && !authCode.Consumed))
+                .FirstOrDefaultAsync(x => x.UserName == userName);
+        }
+
+        public async Task CreateTokenInfo(TokenInfo tokenInfo)
+        {
+            var tokenInfoSet = _context.Set<TokenInfo>();
+
+            await tokenInfoSet.AddAsync(tokenInfo);
+            await _context.SaveChangesAsync();
         }
     }
 }

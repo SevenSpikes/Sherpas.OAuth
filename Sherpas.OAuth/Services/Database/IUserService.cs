@@ -8,5 +8,6 @@ namespace Sherpas.OAuth.Services.Database
         Task<User?> GetByUserNameAndCode(string userName, string password);
         Task<User?> GetByUserNameAndRefreshToken(string userName, string refreshToken);
         Task<User?> AddAuthenticationCodeForUser(string userName, string authenticationCode);
+        Task CreateTokenInfo(TokenInfo tokenInfo);
     }
 }
