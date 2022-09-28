@@ -39,17 +39,12 @@ namespace Sherpas.OAuth.Controllers
             [FromForm] string? code,
             [FromForm] string? refresh_token)
         {
-            AccessTokenResponse? accessTokenResponse = null;
-
-            switch (grant_type)
+            AccessTokenResponse? accessTokenResponse = grant_type switch
             {
-                case "code":
-                    accessTokenResponse = await ProcessCodeGrant(client_id, code);
-                    break;
-                case "refresh_token":
-                    accessTokenResponse = await ProcessRefreshGrant(client_id, refresh_token);
-                    break;
-            }
+                "code" => await ProcessCodeGrant(client_id, code),
+                "refresh_token" => await ProcessRefreshGrant(client_id, refresh_token),
+                _ => null
+            };
 
             if (accessTokenResponse != null)
             {
@@ -72,11 +67,13 @@ namespace Sherpas.OAuth.Controllers
             // Invalidate the refresh token
             var ti = user.TokenInfo.FirstOrDefault(x => x.RefreshToken == refreshToken);
 
-            if (ti != null)
+            if (ti == null)
             {
-                user.TokenInfo.Remove(ti);
-                await _userService.Update(user);
+                return null;
             }
+
+            user.TokenInfo.Remove(ti);
+            await _userService.Update(user);
 
             return await GenerateTokenResponse(user);
         }
@@ -94,11 +91,13 @@ namespace Sherpas.OAuth.Controllers
             // Invalidate the access code
             var ac = user.AuthenticationCodes.FirstOrDefault(x => x.Code == code);
 
-            if (ac != null)
+            if (ac == null)
             {
-                ac.Consumed = true;
-                await _userService.Update(user);
+                return null;
             }
+
+            ac.Consumed = true;
+            await _userService.Update(user);
 
             return await GenerateTokenResponse(user);
         }
